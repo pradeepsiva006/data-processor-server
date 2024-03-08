@@ -19,7 +19,7 @@ namespace DataProcessor.API
             {
                 loggingBuilder.AddConsole();
                 loggingBuilder.AddDebug();
-                loggingBuilder.AddFile("logs/snow-api-{Date}.txt");
+                loggingBuilder.AddFile("logs/data-processor-api-{Date}.txt");
             });
             builder.Services.ConfigureServices();
 
