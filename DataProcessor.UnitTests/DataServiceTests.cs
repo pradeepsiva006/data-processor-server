@@ -5,6 +5,8 @@ using DataProcessor.Common.Models;
 using DataProcessor.Core.DataStore;
 using DataProcessor.Core.Implementations;
 using System.Text;
+using DataProcessor.Common.CustomExceptions;
+using System.IO;
 
 namespace DataProcessor.UnitTests
 {
@@ -28,9 +30,10 @@ namespace DataProcessor.UnitTests
         {
             // Arrange
             var fileContent = "#A:RED:5\n#B:BLUE:10";
+            var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
             var inputFileMock = new Mock<IFormFile>();
-            inputFileMock.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
-
+            inputFileMock.Setup(f => f.OpenReadStream()).Returns(fileStream);
+            inputFileMock.Setup(f => f.Length).Returns(fileStream.Length);
             var expectedData = new List<DataItem>
             {
                 new DataItem { Name = "A", Color = "RED", Value = 5 },
@@ -73,10 +76,10 @@ namespace DataProcessor.UnitTests
             invalidInputFileMock.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(Encoding.UTF8.GetBytes(invalidFileContent)));
 
             _dataUtilityMock.Setup(d => d.ParseLine(It.IsAny<string>()))
-                            .Throws<FormatException>();
+                            .Throws<ParsingException>();
 
             // Act and Assert
-            Assert.ThrowsAsync<FormatException>(async () => await _service.ParseFileAsync(invalidInputFileMock.Object));
+            Assert.ThrowsAsync<ParsingException>(async () => await _service.ParseFileAsync(invalidInputFileMock.Object));
         }
 
         [Test]
@@ -88,7 +91,7 @@ namespace DataProcessor.UnitTests
             emptyInputFileMock.Setup(f => f.OpenReadStream()).Returns(new MemoryStream(Encoding.UTF8.GetBytes(emptyFileContent)));
 
             // Act and Assert
-            Assert.ThrowsAsync<FormatException>(async () => await _service.ParseFileAsync(emptyInputFileMock.Object));
+            Assert.ThrowsAsync<ParsingException>(async () => await _service.ParseFileAsync(emptyInputFileMock.Object));
         }
 
         [Test]

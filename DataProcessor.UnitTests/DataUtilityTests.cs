@@ -1,4 +1,6 @@
 
+using DataProcessor.Common.CustomExceptions;
+
 namespace DataProcessor.UnitTests
 {
     public class DataUtilityTests
@@ -33,7 +35,7 @@ namespace DataProcessor.UnitTests
             var line = "A:RED:5";
 
             // Act & Assert
-            Assert.Throws<FormatException>(() => _dataUtility.ParseLine(line));
+            Assert.Throws<ParsingException>(() => _dataUtility.ParseLine(line));
         }
 
         [Test]
@@ -50,7 +52,7 @@ namespace DataProcessor.UnitTests
             var line = "#A:RED";
 
             // Act & Assert
-            Assert.Throws<FormatException>(() => _dataUtility.ParseLine(line));
+            Assert.Throws<ParsingException>(() => _dataUtility.ParseLine(line));
         }
 
         [Test]
@@ -60,7 +62,7 @@ namespace DataProcessor.UnitTests
             var line = "#:RED:5";
 
             // Act & Assert
-            Assert.Throws<FormatException>(() => _dataUtility.ParseLine(line));
+            Assert.Throws<ParsingException>(() => _dataUtility.ParseLine(line));
         }
 
         [Test]
@@ -70,7 +72,7 @@ namespace DataProcessor.UnitTests
             var line = "##InvalidName:RED:5";
 
             // Act & Assert
-            Assert.Throws<FormatException>(() => _dataUtility.ParseLine(line));
+            Assert.Throws<ParsingException>(() => _dataUtility.ParseLine(line));
         }
 
         [Test]
@@ -80,7 +82,7 @@ namespace DataProcessor.UnitTests
             var line = "#A::5";
 
             // Act & Assert
-            Assert.Throws<FormatException>(() => _dataUtility.ParseLine(line));
+            Assert.Throws<ParsingException>(() => _dataUtility.ParseLine(line));
         }
 
         [Test]
@@ -90,7 +92,7 @@ namespace DataProcessor.UnitTests
             var line = "#A:InvalidColor:5";
 
             // Act & Assert
-            Assert.Throws<FormatException>(() => _dataUtility.ParseLine(line));
+            Assert.Throws<ParsingException>(() => _dataUtility.ParseLine(line));
         }
 
         [Test]
@@ -100,7 +102,7 @@ namespace DataProcessor.UnitTests
             var line = "#A:RED:invalid";
 
             // Act & Assert
-            Assert.Throws<FormatException>(() => _dataUtility.ParseLine(line));
+            Assert.Throws<ParsingException>(() => _dataUtility.ParseLine(line));
         }
 
         [Test]
@@ -124,7 +126,7 @@ namespace DataProcessor.UnitTests
             var invalidColorName = "InvalidColor";
 
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => _dataUtility.GetColorCode(invalidColorName));
+            Assert.Throws<ParsingException>(() => _dataUtility.GetColorCode(invalidColorName));
         }
 
         [Test]
@@ -141,7 +143,7 @@ namespace DataProcessor.UnitTests
             var emptyColorName = string.Empty;
 
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => _dataUtility.GetColorCode(emptyColorName));
+            Assert.Throws<ParsingException>(() => _dataUtility.GetColorCode(emptyColorName));
         }
 
 

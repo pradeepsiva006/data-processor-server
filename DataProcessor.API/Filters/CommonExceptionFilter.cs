@@ -1,16 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using DataProcessor.Common.CustomExceptions;
 
 namespace DataProcessor.API.Filters
 {
+    /// <summary>
+    /// Exception filter that handles specific exceptions(ParsingException) and returns appropriate HTTP responses.
+    /// </summary>
     public class CommonExceptionFilter : ExceptionFilterAttribute
     {
         public override void OnException(ExceptionContext context)
         {
-            LogException(context.Exception);
-
-            if (context.Exception is FormatException || context.Exception is ArgumentException)
+            if (context.Exception is ParsingException)
             {
                 context.Result = new ObjectResult(context.Exception.Message)
                 {
@@ -26,11 +28,6 @@ namespace DataProcessor.API.Filters
             }
 
             context.ExceptionHandled = true;
-        }
-
-        private void LogException(Exception exception)
-        {
-            Console.WriteLine($"Exception logged: {exception.Message}");
         }
     }
 }

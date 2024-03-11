@@ -4,9 +4,13 @@ using DataProcessor.Common.Helper;
 using DataProcessor.Common.Models;
 using DataProcessor.Core.DataStore;
 using DataProcessor.Core.Interfaces;
+using DataProcessor.Common.CustomExceptions;
 
 namespace DataProcessor.Core.Implementations
 {
+    /// <summary>
+    /// Service class responsible for data parsing and manipulation.
+    /// </summary>
     public class DataService : IDataService
     {
         private readonly IDataStore _dataStore;
@@ -19,9 +23,20 @@ namespace DataProcessor.Core.Implementations
             _logger = logger;
         }
 
+        /// <summary>
+        /// Asynchronously parses data from an uploaded file.
+        /// </summary>
+        /// <param name="file">The uploaded file containing data to be parsed.</param>
+        /// <returns>A task that returns a list of parsed DataItems.</returns>
+        /// <exception cref="ParsingException">Thrown if an error occurs during parsing or the file is empty.</exception>
+
         #region public methods
         public async Task<List<DataItem>> ParseFileAsync(IFormFile file)
         {
+            if (file.Length == 0)
+            {
+                throw new ParsingException("File should contain text to parse!");
+            }
             var data = new List<DataItem>();
             using (var reader = new StreamReader(file.OpenReadStream()))
             {
@@ -33,23 +48,28 @@ namespace DataProcessor.Core.Implementations
                         DataItem item = _dataUtility.ParseLine(line);
                         data.Add(item);
                     }
+                    catch (ParsingException ex)
+                    {
+                        _logger.LogError($"Error parsing the line - {line} in ParseFileAsync(): {ex?.InnerException?.Message}");
+                        throw;
+                    }
                     catch (Exception ex)
                     {
-                        _logger.LogError($"Error parsing in ProcessFile(): {ex.Message}");
+                        _logger.LogError($"Unexpected Error parsing the line - {line} in ParseFileAsync(): {ex.Message}");
                         throw;
                     }
                 }
-            }
-
-            if(data.Count == 0)
-            {
-                throw new FormatException("File should contain text to parse!");
             }
 
             _dataStore.UpdateData(data);
 
             return data;
         }
+
+        /// <summary>
+        /// Retrieves and randomizes data from the underlying data store.
+        /// </summary>
+        /// <returns>A list of DataItems containing the updated data.</returns>
 
         public List<DataItem> GetUpdatedData()
         {
@@ -58,43 +78,56 @@ namespace DataProcessor.Core.Implementations
                 RandomizeData();
                 return _dataStore.GetData();
             }
-
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _logger.LogError($"Error in GetUpdatedData() : {ex.Message}");
+                _logger.LogError($"Unexpected Error in GetUpdatedData() : {ex.Message}");
                 throw;
             }
 
         }
-
         #endregion
 
         #region private methods
+        /// <summary>
+        /// Randomizes the values of the data retrieved from the data store.
+        /// </summary>
+        /// <remarks>
+        /// This method modifies the data retrieved from the data store in-place.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">Thrown if the data retrieved from the data store is null.</exception>
+
         private void RandomizeData()
         {
-            var data = _dataStore.GetData();
-
-            if (data.Count == 0)
+            try
             {
-                return;
+                var data = _dataStore.GetData();
+
+                if (data.Count == 0)
+                {
+                    return;
+                }
+
+                int maxValue = data.Max(item => item.Value);
+                int minValue = data.Min(item => item.Value);
+
+                Random random = new Random();
+                foreach (var item in data)
+                {
+                    item.Value = random.Next(minValue, maxValue + maxValue);
+                }
+
+                _dataStore.UpdateData(data);
+
             }
-
-            int maxValue = data[0].Value;
-            int minValue = data[0].Value;
-
-            foreach (var item in data)
+            catch (ArgumentNullException ex)
             {
-                maxValue = Math.Max(maxValue, item.Value);
-                minValue = Math.Min(minValue, item.Value);
+                _logger.LogError($"ArgumentNullException in RandomizeData() => {ex.Message}");
+                throw;
             }
-
-            Random random = new Random();
-            foreach (var item in data)
+            catch(Exception)
             {
-                item.Value = random.Next(minValue, maxValue + maxValue);
+                throw;
             }
-
-            _dataStore.UpdateData(data);
         }
         #endregion
     }
