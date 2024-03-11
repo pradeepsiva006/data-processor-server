@@ -75,8 +75,7 @@ namespace DataProcessor.Core.Implementations
         {
             try
             {
-                RandomizeData();
-                return _dataStore.GetData();
+                return GetRandomizedData(_dataStore.GetData());
             }
             catch (Exception ex)
             {
@@ -89,22 +88,25 @@ namespace DataProcessor.Core.Implementations
 
         #region private methods
         /// <summary>
-        /// Randomizes the values of the data retrieved from the data store.
+        /// Randomizes the values of DataItems within a provided list, updates the data store and returns the randomized list.
         /// </summary>
+        /// <param name="data">The list of DataItems to be randomized.</param>
+        /// <returns>
+        /// A new list containing the randomized DataItems, or the original list if empty.
+        /// </returns>
         /// <remarks>
-        /// This method modifies the data retrieved from the data store in-place.
+        /// This method randomizes the values of DataItems within the provided list and the range extends to twice the maximum Value.
+        /// This approach address cases where the original minimum and maximum values are the same and provides a broader range for client-side graph visualization.
+        /// Updates the data store with the randomized data and returns the modified list.
         /// </remarks>
-        /// <exception cref="ArgumentNullException">Thrown if the data retrieved from the data store is null.</exception>
-
-        private void RandomizeData()
+        /// <exception cref="ArgumentNullException">Thrown if the data parameter is null.</exception>
+        private List<DataItem> GetRandomizedData(List<DataItem> data)
         {
             try
             {
-                var data = _dataStore.GetData();
-
-                if (data.Count == 0)
+                if (data?.Count == 0)
                 {
-                    return;
+                    return data;
                 }
 
                 int maxValue = data.Max(item => item.Value);
@@ -117,6 +119,7 @@ namespace DataProcessor.Core.Implementations
                 }
 
                 _dataStore.UpdateData(data);
+                return data;
 
             }
             catch (ArgumentNullException ex)
@@ -124,7 +127,7 @@ namespace DataProcessor.Core.Implementations
                 _logger.LogError($"ArgumentNullException in RandomizeData() => {ex.Message}");
                 throw;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }

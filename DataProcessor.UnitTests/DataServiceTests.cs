@@ -106,7 +106,7 @@ namespace DataProcessor.UnitTests
 
             // Assert
             Assert.IsEmpty(result);
-            _dataStoreMock.Verify(x => x.GetData(), Times.Exactly(2));
+            _dataStoreMock.Verify(x => x.GetData(), Times.Exactly(1));
             _dataStoreMock.Verify(x => x.UpdateData(It.IsAny<List<DataItem>>()), Times.Never);
         }
 
@@ -129,7 +129,7 @@ namespace DataProcessor.UnitTests
             Assert.That(result, Is.Not.Null);
             Assert.That(result[0].Value, Is.GreaterThanOrEqualTo(5).And.LessThanOrEqualTo(20));
             Assert.That(result[1].Value, Is.GreaterThanOrEqualTo(5).And.LessThanOrEqualTo(20));
-            _dataStoreMock.Verify(x => x.GetData(), Times.Exactly(2));
+            _dataStoreMock.Verify(x => x.GetData(), Times.Exactly(1));
             _dataStoreMock.Verify(x => x.UpdateData(It.IsAny<List<DataItem>>()), Times.Once);
         }
 
